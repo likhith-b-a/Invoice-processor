@@ -1,0 +1,58 @@
+[
+  {
+    "file": "01_northwind_INV-NW-88213.pdf",
+    "title": "Happy path \u2014 clean digital invoice",
+    "scenario": "happy",
+    "simulated_sender": "billing@northwind-supplies.com",
+    "expect": "APPROVE",
+    "total": 6863.05
+  },
+  {
+    "file": "02_acme_INV-AC-55102_bank_change.pdf",
+    "title": "Edge case \u2014 bank details changed + lookalike domain",
+    "scenario": "fraud",
+    "simulated_sender": "accounts@acme-supp1ies.com",
+    "expect": "FRAUD_HOLD",
+    "total": 3370.5
+  },
+  {
+    "file": "03_brightline_scan_RE-2026-1187.pdf",
+    "title": "Edge case \u2014 scanned, no PO number, VAT-inclusive (EUR)",
+    "scenario": "scan_infer_po",
+    "simulated_sender": "rechnung@brightline-logistics.de",
+    "expect": "APPROVE",
+    "total": 4938.5
+  },
+  {
+    "file": "04_cobalt_INV-C-0577_split_po.pdf",
+    "title": "Edge case \u2014 3rd invoice on split PO overruns it",
+    "scenario": "split_po_overrun",
+    "simulated_sender": "invoices@cobaltcloud.io",
+    "expect": "HOLD",
+    "total": 6300.0
+  },
+  {
+    "file": "05_pixelpine_PP-2297_resubmission.pdf",
+    "title": "Edge case \u2014 near-duplicate resubmission (new number)",
+    "scenario": "near_duplicate",
+    "simulated_sender": "studio@pixelandpine.co",
+    "expect": "HOLD",
+    "total": 4800.0
+  },
+  {
+    "file": "06_northwind_missing_invoice_number.pdf",
+    "title": "Missing invoice number \u2014 ask vendor",
+    "scenario": "request_info",
+    "simulated_sender": "billing@northwind-supplies.com",
+    "expect": "REQUEST_INFO",
+    "total": 3623.13
+  },
+  {
+    "file": "07_helix_HLX-30091_inactive_vendor.pdf",
+    "title": "Inactive vendor \u2014 reject",
+    "scenario": "inactive_vendor",
+    "simulated_sender": "accounts@helixlab.com",
+    "expect": "REJECT",
+    "total": 3890.0
+  }
+]

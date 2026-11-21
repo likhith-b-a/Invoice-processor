@@ -1,0 +1,80 @@
+[
+  {
+    "id": "V001",
+    "name": "Northwind Office Supplies Inc.",
+    "aliases": ["Northwind Office Supplies", "Northwind Supplies", "NW Office Supplies"],
+    "email_domain": "northwind-supplies.com",
+    "contact_email": "billing@northwind-supplies.com",
+    "tax_id": "94-3127745",
+    "currency": "USD",
+    "bank_name": "JPMorgan Chase Bank",
+    "bank_account": "021000021-4471829035",
+    "payment_terms": "Net 30",
+    "status": "active"
+  },
+  {
+    "id": "V002",
+    "name": "Acme Industrial Supplies LLC",
+    "aliases": ["Acme Industrial Supplies", "Acme Industrial", "Acme Supplies"],
+    "email_domain": "acmesupplies.com",
+    "contact_email": "ar@acmesupplies.com",
+    "tax_id": "47-2210983",
+    "currency": "USD",
+    "bank_name": "Bank of America",
+    "bank_account": "026009593-8890123456",
+    "payment_terms": "Net 45",
+    "status": "active"
+  },
+  {
+    "id": "V003",
+    "name": "Brightline Logistics GmbH",
+    "aliases": ["Brightline Logistics", "Brightline Logistik GmbH", "Brightline"],
+    "email_domain": "brightline-logistics.de",
+    "contact_email": "rechnung@brightline-logistics.de",
+    "tax_id": "DE298471560",
+    "currency": "EUR",
+    "bank_name": "Commerzbank AG",
+    "bank_account": "DE89370400440532013000",
+    "payment_terms": "Net 30",
+    "status": "active"
+  },
+  {
+    "id": "V004",
+    "name": "Cobalt Cloud Services Ltd",
+    "aliases": ["Cobalt Cloud Services", "Cobalt Cloud", "Cobalt Cloud Services Limited"],
+    "email_domain": "cobaltcloud.io",
+    "contact_email": "invoices@cobaltcloud.io",
+    "tax_id": "GB284917362",
+    "currency": "USD",
+    "bank_name": "Barclays Bank UK",
+    "bank_account": "GB33BUKB20201555555555",
+    "payment_terms": "Net 15",
+    "status": "active"
+  },
+  {
+    "id": "V005",
+    "name": "Pixel & Pine Design Studio",
+    "aliases": ["Pixel and Pine Design Studio", "Pixel & Pine", "Pixel and Pine"],
+    "email_domain": "pixelandpine.co",
+    "contact_email": "studio@pixelandpine.co",
+    "tax_id": "81-4429017",
+    "currency": "USD",
+    "bank_name": "Silicon Valley Bank",
+    "bank_account": "121140399-3300918274",
+    "payment_terms": "Net 30",
+    "status": "active"
+  },
+  {
+    "id": "V006",
+    "name": "Helix Lab Equipment Co.",
+    "aliases": ["Helix Lab Equipment", "Helix Lab"],
+    "email_domain": "helixlab.com",
+    "contact_email": "accounts@helixlab.com",
+    "tax_id": "33-9918274",
+    "currency": "USD",
+    "bank_name": "Wells Fargo",
+    "bank_account": "121000248-5512093384",
+    "payment_terms": "Net 30",
+    "status": "inactive"
+  }
+]

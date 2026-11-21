@@ -1,0 +1,90 @@
+[
+  {
+    "po_number": "PO-1001",
+    "vendor_id": "V001",
+    "currency": "USD",
+    "issued": "2026-10-28",
+    "status": "open",
+    "lines": [
+      {"sku": "NW-PAP-A4", "description": "A4 copy paper, 80gsm (box of 5 reams)", "quantity": 50, "unit_price": 42.00},
+      {"sku": "NW-TON-26X", "description": "Toner cartridge HP 26X black", "quantity": 20, "unit_price": 89.50},
+      {"sku": "NW-CHR-ERG", "description": "Ergonomic mesh office chair", "quantity": 10, "unit_price": 245.00}
+    ]
+  },
+  {
+    "po_number": "PO-1002",
+    "vendor_id": "V002",
+    "currency": "USD",
+    "issued": "2026-10-30",
+    "status": "open",
+    "lines": [
+      {"sku": "AC-GLV-N", "description": "Nitrile safety gloves (box of 100)", "quantity": 200, "unit_price": 6.25},
+      {"sku": "AC-HAT-W", "description": "Hard hat, white, ANSI Type I", "quantity": 50, "unit_price": 18.40},
+      {"sku": "AC-VST-HV", "description": "Hi-vis safety vest, class 2", "quantity": 100, "unit_price": 9.80}
+    ]
+  },
+  {
+    "po_number": "PO-1003",
+    "vendor_id": "V003",
+    "currency": "EUR",
+    "issued": "2026-10-15",
+    "status": "open",
+    "lines": [
+      {"sku": "BL-FRT-HR", "description": "FTL freight Hamburg to Rotterdam", "quantity": 4, "unit_price": 1850.00},
+      {"sku": "BL-CUS-HD", "description": "Customs handling and documentation", "quantity": 4, "unit_price": 225.00}
+    ]
+  },
+  {
+    "po_number": "PO-1007",
+    "vendor_id": "V003",
+    "currency": "EUR",
+    "issued": "2026-09-01",
+    "status": "open",
+    "lines": [
+      {"sku": "BL-WH-PAL", "description": "Pallet storage, Hamburg warehouse (monthly, 40 pallets)", "quantity": 12, "unit_price": 640.00}
+    ]
+  },
+  {
+    "po_number": "PO-1004",
+    "vendor_id": "V004",
+    "currency": "USD",
+    "issued": "2026-09-20",
+    "status": "open",
+    "lines": [
+      {"sku": "CC-MIG-HR", "description": "Cloud migration consulting (hourly)", "quantity": 120, "unit_price": 150.00}
+    ]
+  },
+  {
+    "po_number": "PO-1005",
+    "vendor_id": "V005",
+    "currency": "USD",
+    "issued": "2026-09-05",
+    "status": "open",
+    "lines": [
+      {"sku": "PP-BR-M1", "description": "Brand refresh - Milestone 1: discovery and moodboards", "quantity": 1, "unit_price": 4800.00},
+      {"sku": "PP-BR-M2", "description": "Brand refresh - Milestone 2: identity system and logo suite", "quantity": 1, "unit_price": 4800.00},
+      {"sku": "PP-BR-M3", "description": "Brand refresh - Milestone 3: guidelines and asset handoff", "quantity": 1, "unit_price": 4800.00}
+    ]
+  },
+  {
+    "po_number": "PO-1006",
+    "vendor_id": "V001",
+    "currency": "USD",
+    "issued": "2026-11-03",
+    "status": "open",
+    "lines": [
+      {"sku": "NW-MON-27", "description": "27-inch IPS monitor, QHD", "quantity": 15, "unit_price": 189.00},
+      {"sku": "NW-ARM-DL", "description": "Dual monitor arm, desk clamp", "quantity": 8, "unit_price": 64.00}
+    ]
+  },
+  {
+    "po_number": "PO-0987",
+    "vendor_id": "V002",
+    "currency": "USD",
+    "issued": "2026-06-11",
+    "status": "closed",
+    "lines": [
+      {"sku": "AC-GLV-N", "description": "Nitrile safety gloves (box of 100)", "quantity": 100, "unit_price": 6.10}
+    ]
+  }
+]

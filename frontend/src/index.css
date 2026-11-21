@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+/* ---------- tokens: ledger paper, carbon-copy ink, stamp colours ---------- */
+:root {
+  --paper: #eef0ec;
+  --sheet: #ffffff;
+  --sheet-2: #f6f7f4;
+  --rule: #d9ddd5;
+  --rule-strong: #b9bfb4;
+  --ink: #17202b;
+  --ink-2: #4a5563;
+  --ink-3: #7b8592;
+  --carbon: #2d3fe0;
+  --carbon-soft: #e6e9fd;
+
+  --ok: #1d7a4c;
+  --ok-soft: #e1f2e8;
+  --warn: #a8650b;
+  --warn-soft: #fbf0db;
+  --bad: #b42318;
+  --bad-soft: #fbe4e1;
+  --info: #5b45b5;
+  --info-soft: #ece8fb;
+  --muted-soft: #eceeea;
+
+  --font-display: "Archivo", "Arial Narrow", sans-serif;
+  --font-body: "Public Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1118;
+    --sheet: #151b25;
+    --sheet-2: #1a212d;
+    --rule: #263040;
+    --rule-strong: #3a465a;
+    --ink: #e7ebf1;
+    --ink-2: #aab4c3;
+    --ink-3: #7c8799;
+    --carbon: #8b98ff;
+    --carbon-soft: #1f2650;
+    --ok: #4cc38a;
+    --ok-soft: #12301f;
+    --warn: #e8a33c;
+    --warn-soft: #34260f;
+    --bad: #ff6b5e;
+    --bad-soft: #3a1714;
+    --info: #a996ff;
+    --info-soft: #251d47;
+    --muted-soft: #1d2430;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0d1118;
+  --sheet: #151b25;
+  --sheet-2: #1a212d;
+  --rule: #263040;
+  --rule-strong: #3a465a;
+  --ink: #e7ebf1;
+  --ink-2: #aab4c3;
+  --ink-3: #7c8799;
+  --carbon: #8b98ff;
+  --carbon-soft: #1f2650;
+  --ok: #4cc38a;
+  --ok-soft: #12301f;
+  --warn: #e8a33c;
+  --warn-soft: #34260f;
+  --bad: #ff6b5e;
+  --bad-soft: #3a1714;
+  --info: #a996ff;
+  --info-soft: #251d47;
+  --muted-soft: #1d2430;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-sheet-2: var(--sheet-2);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-carbon: var(--carbon);
+  --color-carbon-soft: var(--carbon-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-muted-soft: var(--muted-soft);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+html, body, #root { min-height: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-stretch: 118%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.sheet {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+:focus-visible { outline: 2px solid var(--carbon); outline-offset: 2px; border-radius: 4px; }
+
+/* ---------- the stamp (signature) ---------- */
+.stamp {
+  --c: var(--ink-2);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 18px 8px;
+  border: 3px solid var(--c);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px var(--sheet), inset 0 0 0 3.5px var(--c);
+  color: var(--c);
+  transform: rotate(-4deg);
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 1;
+  mix-blend-mode: multiply;
+  position: relative;
+}
+:root[data-theme="dark"] .stamp { mix-blend-mode: normal; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .stamp { mix-blend-mode: normal; } }
+.stamp::after { /* worn ink texture */
+  content: "";
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 20% 30%, var(--sheet) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 70% 60%, var(--sheet) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 45% 80%, var(--sheet) 0 0.8px, transparent 1.3px);
+  background-size: 13px 11px, 17px 15px, 9px 12px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.stamp-land { animation: stamp-land 420ms cubic-bezier(.2,.9,.3,1.25) both; }
+@keyframes stamp-land {
+  0% { transform: rotate(-12deg) scale(2.1); opacity: 0; }
+  60% { transform: rotate(-3deg) scale(0.94); opacity: 1; }
+  100% { transform: rotate(-4deg) scale(1); opacity: 1; }
+}
+
+/* routing-slip punch holes */
+.slip { background-image: radial-gradient(circle, var(--paper) 3.5px, transparent 4px);
+  background-size: 14px 22px; background-repeat: repeat-y; background-position: 6px 8px; }
+
+.row-flash { animation: row-flash 1.6s ease-out; }
+@keyframes row-flash { from { background: var(--carbon-soft); } to { background: transparent; } }
+
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pulse-dot { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp-land, .row-flash, .spin, .pulse-dot { animation: none !important; }
+}
