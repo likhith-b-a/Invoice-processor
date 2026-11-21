@@ -83,7 +83,8 @@ export default function RunView() {
             <SourceTag source={run.source} meta={run.source_meta} />
             {run.source_meta?.from && (
               <span className="inline-flex items-center gap-1"><Mail size={12} /> {run.source_meta.from}
-                {run.source_meta.simulated && <span className="text-ink-3">(simulated sender)</span>}</span>
+                {run.source_meta.simulated && <span className="text-ink-3">(simulated sender)</span>}
+                {run.source_meta.internal_forward && <span className="text-ink-3">(forwarded by AP — sender-domain check skipped, invoice domains still checked)</span>}</span>
             )}
             {run.source_meta?.subject && <span className="truncate max-w-72">“{run.source_meta.subject}”</span>}
             <span>{timeAgo(run.created_at)}</span>
