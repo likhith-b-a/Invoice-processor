@@ -55,7 +55,7 @@ export default function App() {
   const depth = useRef(0);
 
   const attention = live.runs.filter(
-    (r) => r.status === "done" && ["HOLD", "FRAUD_HOLD", "REQUEST_INFO"].includes(r.decision) && !r.review_status
+    (r) => r.status === "done" && ["HOLD", "FRAUD_HOLD", "REQUEST_INFO", "NEEDS_APPROVAL"].includes(r.decision) && !r.review_status
   ).length;
 
   const onDrop = useCallback(async (e) => {

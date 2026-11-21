@@ -2,7 +2,11 @@
   {
     "id": "V001",
     "name": "Northwind Office Supplies Inc.",
-    "aliases": ["Northwind Office Supplies", "Northwind Supplies", "NW Office Supplies"],
+    "aliases": [
+      "Northwind Office Supplies",
+      "Northwind Supplies",
+      "NW Office Supplies"
+    ],
     "email_domain": "northwind-supplies.com",
     "contact_email": "billing@northwind-supplies.com",
     "tax_id": "94-3127745",
@@ -15,7 +19,11 @@
   {
     "id": "V002",
     "name": "Acme Industrial Supplies LLC",
-    "aliases": ["Acme Industrial Supplies", "Acme Industrial", "Acme Supplies"],
+    "aliases": [
+      "Acme Industrial Supplies",
+      "Acme Industrial",
+      "Acme Supplies"
+    ],
     "email_domain": "acmesupplies.com",
     "contact_email": "ar@acmesupplies.com",
     "tax_id": "47-2210983",
@@ -28,7 +36,11 @@
   {
     "id": "V003",
     "name": "Brightline Logistics GmbH",
-    "aliases": ["Brightline Logistics", "Brightline Logistik GmbH", "Brightline"],
+    "aliases": [
+      "Brightline Logistics",
+      "Brightline Logistik GmbH",
+      "Brightline"
+    ],
     "email_domain": "brightline-logistics.de",
     "contact_email": "rechnung@brightline-logistics.de",
     "tax_id": "DE298471560",
@@ -41,7 +53,11 @@
   {
     "id": "V004",
     "name": "Cobalt Cloud Services Ltd",
-    "aliases": ["Cobalt Cloud Services", "Cobalt Cloud", "Cobalt Cloud Services Limited"],
+    "aliases": [
+      "Cobalt Cloud Services",
+      "Cobalt Cloud",
+      "Cobalt Cloud Services Limited"
+    ],
     "email_domain": "cobaltcloud.io",
     "contact_email": "invoices@cobaltcloud.io",
     "tax_id": "GB284917362",
@@ -54,7 +70,11 @@
   {
     "id": "V005",
     "name": "Pixel & Pine Design Studio",
-    "aliases": ["Pixel and Pine Design Studio", "Pixel & Pine", "Pixel and Pine"],
+    "aliases": [
+      "Pixel and Pine Design Studio",
+      "Pixel & Pine",
+      "Pixel and Pine"
+    ],
     "email_domain": "pixelandpine.co",
     "contact_email": "studio@pixelandpine.co",
     "tax_id": "81-4429017",
@@ -67,7 +87,10 @@
   {
     "id": "V006",
     "name": "Helix Lab Equipment Co.",
-    "aliases": ["Helix Lab Equipment", "Helix Lab"],
+    "aliases": [
+      "Helix Lab Equipment",
+      "Helix Lab"
+    ],
     "email_domain": "helixlab.com",
     "contact_email": "accounts@helixlab.com",
     "tax_id": "33-9918274",
@@ -76,5 +99,86 @@
     "bank_account": "121000248-5512093384",
     "payment_terms": "Net 30",
     "status": "inactive"
+  },
+  {
+    "id": "V007",
+    "name": "Sunrise Packaging Pvt Ltd",
+    "aliases": [
+      "Sunrise Packaging Private Limited",
+      "Sunrise Packaging"
+    ],
+    "email_domain": "sunrisepack.in",
+    "contact_email": "accounts@sunrisepack.in",
+    "tax_id": "27AAKCS4471M1Z5",
+    "currency": "INR",
+    "bank_name": "HDFC Bank",
+    "bank_account": "HDFC0001234-50200044718390",
+    "payment_terms": "Net 30",
+    "status": "active"
+  },
+  {
+    "id": "V008",
+    "name": "Nordic Fresh Catering Oy",
+    "aliases": [
+      "Nordic Fresh Catering",
+      "Nordic Fresh"
+    ],
+    "email_domain": "nordicfresh.fi",
+    "contact_email": "laskutus@nordicfresh.fi",
+    "tax_id": "FI28471930",
+    "currency": "EUR",
+    "bank_name": "Nordea Bank",
+    "bank_account": "FI2112345600000785",
+    "payment_terms": "Net 14",
+    "status": "active"
+  },
+  {
+    "id": "V009",
+    "name": "Atlas Facility Services Inc.",
+    "aliases": [
+      "Atlas Facility Services",
+      "Atlas Facilities"
+    ],
+    "email_domain": "atlasfacility.com",
+    "contact_email": "billing@atlasfacility.com",
+    "tax_id": "36-4471902",
+    "currency": "USD",
+    "bank_name": "U.S. Bank",
+    "bank_account": "091000022-1048827733",
+    "payment_terms": "Net 30",
+    "status": "active"
+  },
+  {
+    "id": "V010",
+    "name": "Quantum Print & Signage LLC",
+    "aliases": [
+      "Quantum Print and Signage",
+      "Quantum Print"
+    ],
+    "email_domain": "quantumprint.com",
+    "contact_email": "ar@quantumprint.com",
+    "tax_id": "52-3390187",
+    "currency": "USD",
+    "bank_name": "Citibank",
+    "bank_account": "021000089-6630014472",
+    "payment_terms": "Net 30",
+    "status": "active"
+  },
+  {
+    "id": "V011",
+    "name": "Greenleaf IT Hardware Ltd",
+    "aliases": [
+      "Greenleaf IT Hardware",
+      "Greenleaf IT",
+      "Greenleaf"
+    ],
+    "email_domain": "greenleaf-it.co.uk",
+    "contact_email": "invoices@greenleaf-it.co.uk",
+    "tax_id": "GB193847562",
+    "currency": "GBP",
+    "bank_name": "HSBC UK",
+    "bank_account": "GB29HBUK40127612345678",
+    "payment_terms": "Net 30",
+    "status": "active"
   }
 ]

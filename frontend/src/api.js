@@ -24,7 +24,7 @@ export const api = {
     [...files].forEach((f) => fd.append("files", f));
     return req("/api/upload", { method: "POST", body: fd });
   },
-  review: (id, action, comment) => req(`/api/runs/${id}/review`, json("POST", { action, comment })),
+  review: (id, action, comment, name, role) => req(`/api/runs/${id}/review`, json("POST", { action, comment, name, role })),
   rerun: (id) => req(`/api/runs/${id}/rerun`, json("POST")),
   drafts: () => req("/api/drafts"),
   editDraft: (id, body) => req(`/api/drafts/${id}`, json("PATCH", body)),

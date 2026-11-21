@@ -6,7 +6,7 @@ import { useRuns } from "../App";
 import { DECISIONS, DecisionChip, Money, SourceTag, moneyMap, timeAgo, Empty, Button } from "../components/ui";
 
 const FILTERS = [
-  ["all", "All"], ["attention", "Needs attention"], ["APPROVE", "Approved"], ["HOLD", "On hold"],
+  ["all", "All"], ["attention", "Needs attention"], ["APPROVE", "Approved"], ["NEEDS_APPROVAL", "Awaiting approval"], ["HOLD", "On hold"],
   ["REQUEST_INFO", "Info requested"], ["FRAUD_HOLD", "Fraud hold"], ["REJECT", "Rejected"],
 ];
 
@@ -30,7 +30,7 @@ export default function Dashboard() {
     return runs.filter((r) => {
       if (!showHistory && r.source === "seed") return false;
       const eff = r.effective_decision;
-      if (filter === "attention" && !(r.status === "done" && ["HOLD", "FRAUD_HOLD", "REQUEST_INFO"].includes(r.decision) && !r.review_status)) return false;
+      if (filter === "attention" && !(r.status === "done" && ["HOLD", "FRAUD_HOLD", "REQUEST_INFO", "NEEDS_APPROVAL"].includes(r.decision) && !r.review_status)) return false;
       if (!["all", "attention"].includes(filter) && eff !== filter) return false;
       if (source !== "all" && r.source !== source) return false;
       if (needle && ![r.vendor_name, r.invoice_number, r.po_number, r.filename].join(" ").toLowerCase().includes(needle)) return false;
@@ -68,14 +68,14 @@ export default function Dashboard() {
         <section aria-label="Decision mix">
           <div className="flex h-2.5 rounded-full overflow-hidden gap-[2px]">
             {Object.keys(DECISIONS).filter((k) => mix[k]).map((k) => (
-              <div key={k} style={{ flex: mix[k], background: `var(--${DECISIONS[k].tone === "bad" && k === "REJECT" ? "ink-3" : DECISIONS[k].tone})` }}
+              <div key={k} style={{ flex: mix[k], background: `var(--${k === "REJECT" ? "ink-3" : DECISIONS[k].tone})` }}
                 title={`${DECISIONS[k].label}: ${mix[k]}`} />
             ))}
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-[12px] text-ink-2">
             {Object.keys(DECISIONS).filter((k) => mix[k]).map((k) => (
               <span key={k} className="inline-flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ background: `var(--${DECISIONS[k].tone === "bad" && k === "REJECT" ? "ink-3" : DECISIONS[k].tone})` }} />
+                <span className="w-2 h-2 rounded-full" style={{ background: `var(--${k === "REJECT" ? "ink-3" : DECISIONS[k].tone})` }} />
                 {DECISIONS[k].label} <span className="num text-ink">{mix[k]}</span>
               </span>
             ))}

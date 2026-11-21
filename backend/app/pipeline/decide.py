@@ -1,8 +1,21 @@
 """Stage 9: turn rule results into one decision, a human explanation, next actions, and (if needed) a vendor email."""
 from __future__ import annotations
 
-PRIORITY = ["fraud", "reject", "request_info", "review"]
-DECISION_FOR = {"fraud": "FRAUD_HOLD", "reject": "REJECT", "request_info": "REQUEST_INFO", "review": "HOLD"}
+PRIORITY = ["fraud", "reject", "request_info", "review", "approval"]
+DECISION_FOR = {"fraud": "FRAUD_HOLD", "reject": "REJECT", "request_info": "REQUEST_INFO", "review": "HOLD",
+                "approval": "NEEDS_APPROVAL"}
+
+
+def required_approvals(decision: str, over_limit: bool) -> list[str]:
+    """Who must sign off before this invoice can be paid (distinct people)."""
+    if decision == "REJECT":
+        return []
+    req = []
+    if decision in ("HOLD", "REQUEST_INFO", "FRAUD_HOLD"):
+        req.append("reviewer")
+    if over_limit or decision == "FRAUD_HOLD":  # fraud overrides always need a manager too
+        req.append("finance_manager")
+    return req
 
 
 def decide(norm: dict, vendor: dict, po: dict, rules: list[dict], source: dict) -> dict:
@@ -27,6 +40,13 @@ def decide(norm: dict, vendor: dict, po: dict, rules: list[dict], source: dict) 
         next_actions = [f"Schedule payment to account on file ({vendor.get('bank_on_file')}) per {_terms(vendor)}.",
                         f"Book against {po.get('po_number')}; remaining after this: "
                         f"{po['remaining_before'] - (norm.get('subtotal') or 0):,.2f}."]
+    elif decision == "NEEDS_APPROVAL":
+        r16 = by_outcome["approval"][0]
+        headline = f"{inv} from {vname} passed every check — {amt} needs finance manager approval"
+        explanation = [f"All {sum(1 for r in rules if r['status'] == 'pass')} data checks passed.", r16["message"]]
+        next_actions = [f"Finance manager: approve or reject. Policy: invoices above USD {r16['data'].get('limit_usd', 0):,.0f} "
+                        f"are never paid without a second person.",
+                        f"Once approved: pay to account on file ({vendor.get('bank_on_file')}) and book against {po.get('po_number')}."]
     elif decision == "FRAUD_HOLD":
         headline = f"Fraud hold: {inv} from {vname} — payment details can't be trusted"
         next_actions = [
@@ -60,8 +80,14 @@ def decide(norm: dict, vendor: dict, po: dict, rules: list[dict], source: dict) 
         next_actions = [_question(r) for r in by_outcome["review"]]
         next_actions = [q for q in next_actions if q]
 
+    over_limit = bool(by_outcome["approval"])
+    req = required_approvals(decision, over_limit)
+    if req and decision not in ("NEEDS_APPROVAL",):
+        from ..config import ROLES
+        next_actions.append("Sign-off needed from: " + " + ".join(ROLES[r] for r in req)
+                            + (" (two different people)" if len(req) > 1 else "") + ".")
     return {"decision": decision, "headline": headline, "explanation": explanation,
-            "next_actions": next_actions, "email": email,
+            "next_actions": next_actions, "email": email, "required_approvals": req,
             "counts": {s: sum(1 for r in rules if r["status"] == s) for s in ("pass", "warn", "fail", "skip")}}
 
 

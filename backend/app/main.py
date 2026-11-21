@@ -55,6 +55,8 @@ def detail(r: Run) -> dict:
     return {**summary(r), "explanation": r.explanation, "next_actions": r.next_actions, "rules": r.rules,
             "extracted": r.extracted, "normalized": r.normalized, "match": r.match,
             "review_comment": r.review_comment,
+            "required_approvals": r.required_approvals or [], "approvals": r.approvals or [],
+            "approval_progress": approval_progress(r.required_approvals or [], r.approvals or []),
             "events": [ev(e) for e in events],
             "drafts": [d.model_dump(mode="json") for d in drafts],
             "audit": [a.model_dump(mode="json") for a in logs]}
@@ -89,6 +91,42 @@ def run_file(run_id: int):
         raise HTTPException(404)
     return FileResponse(r.file_path, media_type="application/pdf",
                         headers={"Content-Disposition": f'inline; filename="{r.filename}"'})
+
+
+@app.get("/api/runs/{run_id}/pages")
+def run_pages(run_id: int):
+    from .pipeline.locate import page_count
+    with session() as s:
+        r = s.get(Run, run_id)
+    if not r:
+        raise HTTPException(404)
+    return {"pages": page_count(r.file_path)}
+
+
+@app.get("/api/runs/{run_id}/page/{page}.png")
+def run_page_png(run_id: int, page: int):
+    from fastapi.responses import Response
+    from .pipeline.locate import render_png
+    with session() as s:
+        r = s.get(Run, run_id)
+    if not r:
+        raise HTTPException(404)
+    return Response(render_png(r.file_path, page), media_type="image/png",
+                    headers={"Cache-Control": "max-age=3600"})
+
+
+class LocateIn(BaseModel):
+    value: str | float | int | None = None
+
+
+@app.post("/api/runs/{run_id}/locate")
+def run_locate(run_id: int, body: LocateIn):
+    from .pipeline.locate import locate
+    with session() as s:
+        r = s.get(Run, run_id)
+    if not r:
+        raise HTTPException(404)
+    return {"boxes": locate(r.file_path, r.file_hash, r.doc_type, body.value)}
 
 
 @app.get("/api/runs/{run_id}/stream")
@@ -145,15 +183,62 @@ async def upload(files: list[UploadFile] = File(...)):
 class ReviewIn(BaseModel):
     action: str  # approve | reject
     comment: str = ""
+    name: str = ""
+    role: str = "reviewer"  # reviewer | finance_manager
+
+
+def approval_progress(required: list[str], approvals: list[dict]) -> dict:
+    """Match approvals to required roles; each person can fill one requirement (four-eyes)."""
+    approvers = [a for a in approvals if a["action"] == "approve"]
+    used: set[str] = set()
+    filled = []
+    # fill the strictest requirement first
+    for req in sorted(required, key=lambda r: r != "finance_manager"):
+        who = next((a for a in approvers if a["name"].lower() not in used
+                    and (req == "reviewer" or a["role"] == req)), None)
+        if who:
+            used.add(who["name"].lower())
+        filled.append({"role": req, "label": config.ROLES[req], "by": who["name"] if who else None})
+    return {"steps": filled, "complete": all(f["by"] for f in filled)}
 
 
 @app.post("/api/runs/{run_id}/review")
 def review(run_id: int, body: ReviewIn):
     if body.action not in ("approve", "reject"):
         raise HTTPException(400, "action must be approve|reject")
-    status = "approved" if body.action == "approve" else "rejected"
-    update_run(run_id, review_status=status, review_comment=body.comment, reviewed_at=datetime.now())
-    audit(run_id, f"review_{status}", body.comment or "(no comment)", actor="reviewer")
+    if body.role not in config.ROLES:
+        raise HTTPException(400, "unknown role")
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(400, "Enter your name so the approval can be recorded.")
+    with session() as s:
+        r = s.get(Run, run_id)
+    if not r:
+        raise HTTPException(404)
+    if r.review_status:
+        raise HTTPException(409, f"Already {r.review_status}.")
+    approvals = list(r.approvals or [])
+    if body.action == "approve" and any(a["name"].lower() == name.lower() and a["action"] == "approve" for a in approvals):
+        raise HTTPException(409, f"{name} has already approved this invoice. A different person must give the next approval.")
+
+    entry = {"name": name, "role": body.role, "action": body.action, "comment": body.comment,
+             "ts": datetime.now().isoformat(timespec="seconds")}
+    approvals.append(entry)
+    required = r.required_approvals or (["reviewer"] if r.decision != "APPROVE" else [])
+    actor = f"{name} ({config.ROLES[body.role]})"
+    if body.action == "reject":
+        update_run(run_id, approvals=approvals, review_status="rejected", review_comment=body.comment,
+                   reviewed_at=datetime.now())
+        audit(run_id, "rejected", body.comment or "(no comment)", actor=actor)
+    else:
+        prog = approval_progress(required, approvals)
+        audit(run_id, "approved" if prog["complete"] else "approval_recorded",
+              (body.comment or "(no comment)") + ("" if prog["complete"] else
+              " — waiting for " + ", ".join(st["label"] for st in prog["steps"] if not st["by"])), actor=actor)
+        fields = dict(approvals=approvals, review_comment=body.comment)
+        if prog["complete"]:
+            fields.update(review_status="approved", reviewed_at=datetime.now())
+        update_run(run_id, **fields)
     return get_run_detail(run_id)
 
 
@@ -165,7 +250,8 @@ def rerun(run_id: int):
         for d in s.exec(select(EmailDraft).where(EmailDraft.run_id == run_id, EmailDraft.status == "draft")):
             s.delete(d)
         s.commit()
-    update_run(run_id, status="queued", decision="", headline="", rules=[], review_status="", review_comment="")
+    update_run(run_id, status="queued", decision="", headline="", rules=[], review_status="", review_comment="",
+               approvals=[], required_approvals=[])
     audit(run_id, "rerun", actor="reviewer")
     worker.enqueue(run_id)
     return {"ok": True}
@@ -248,7 +334,7 @@ def stats():
     for r in done:
         k = EFFECTIVE.get(r.review_status, r.decision)
         by[k] = by.get(k, 0) + 1
-    held = [r for r in done if r.decision in ("HOLD", "FRAUD_HOLD", "REQUEST_INFO") and not r.review_status]
+    held = [r for r in done if r.decision in ("HOLD", "FRAUD_HOLD", "REQUEST_INFO", "NEEDS_APPROVAL") and not r.review_status]
     approved = [r for r in done if EFFECTIVE.get(r.review_status, r.decision) == "APPROVE"]
     auto = [r for r in done if r.decision == "APPROVE"]
     return {

@@ -30,7 +30,10 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 # rotated on quota errors; each model has its own free-tier quota
 GEMINI_MODELS = [m.strip() for m in os.getenv(
-    "GEMINI_MODELS", f"{GEMINI_MODEL},gemini-2.5-flash-lite,gemini-2.0-flash").split(",") if m.strip()]
+    "GEMINI_MODELS",
+    f"{GEMINI_MODEL},gemini-3.5-flash-lite,gemini-flash-lite-latest,gemini-2.5-flash-lite,gemini-3.8-flash").split(",")
+    if m.strip()]
+GEMINI_TIMEOUT_S = int(os.getenv("GEMINI_TIMEOUT_S", "40"))
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5vl:3b")
 
@@ -51,5 +54,10 @@ PO_INFER_THRESHOLD = 0.72
 FUZZY_DUP_AMOUNT_PCT = 1.0
 FUZZY_DUP_DAYS = 14
 MAX_INVOICE_AGE_DAYS = 180
+
+# approval policy: invoices above this (USD equivalent) are never auto-approved
+APPROVAL_LIMIT_USD = _f("APPROVAL_LIMIT_USD", 10000)
+FX_TO_USD = {"USD": 1.0, "EUR": 1.08, "GBP": 1.27, "INR": 0.012, "CAD": 0.73, "AUD": 0.66}
+ROLES = {"reviewer": "AP reviewer", "finance_manager": "Finance manager"}
 
 EMAIL_ENABLED = bool(IMAP_USER and IMAP_PASSWORD)

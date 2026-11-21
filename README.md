@@ -2,7 +2,12 @@
 
 An automated accounts-payable process. An invoice PDF arrives by **email**, **upload**, or a **watched folder**. It is read (digital or scanned), matched to a purchase order, checked against 15 deterministic rules, and given a decision with the reasoning visible. Every stage streams live to the UI.
 
-**Decisions:** `Approve` · `Hold for review` · `Request info` (drafts an email to the vendor) · `Reject` · `Fraud hold`
+📘 **Full walkthrough: [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md)**: architecture, every stage, rules, edge cases, API, configuration and design decisions.
+🎬 **Demo walkthrough: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)**
+
+**Decisions:** `Approve` · `Awaiting approval` (over the limit) · `Hold for review` · `Request info` (drafts an email to the vendor) · `Reject` · `Fraud hold`
+
+**Also:** four-eyes sign-off (AP reviewer + finance manager, two different people) for high-value and fraud cases · click any extracted field to highlight where it was read on the page (digital and scanned PDFs)
 
 ## Run it
 

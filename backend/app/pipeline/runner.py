@@ -87,6 +87,8 @@ def _process(run_id: int) -> None:
     if doc["doc_type"] == "scanned":
         o = ocr(pages_png)
         doc["ocr_text"] = o["text"]
+        from .locate import save_ocr_boxes
+        save_ocr_boxes(run.file_hash, o["boxes"])
         st.done("ok" if o["avg_confidence"] >= 0.85 else "warn",
                 f"OCR read {o['words']} text regions, avg confidence {o['avg_confidence']:.0%}",
                 {"avg_confidence": o["avg_confidence"], "low_confidence_words": o["low_confidence"],
@@ -165,13 +167,14 @@ def _process(run_id: int) -> None:
     st = Stage(run_id, "decide")
     d = decide_mod.decide(norm, vendor, po, rules, src)
     update_run(run_id, decision=d["decision"], headline=d["headline"],
-               explanation=d["explanation"], next_actions=d["next_actions"])
+               explanation=d["explanation"], next_actions=d["next_actions"],
+               required_approvals=d["required_approvals"], approvals=[], review_status="")
     if d["email"]:
         with session() as s:
             s.add(EmailDraft(run_id=run_id, **d["email"]))
             s.commit()
     audit(run_id, "decision", f"{d['decision']}: {d['headline']}")
-    st.done({"APPROVE": "ok", "HOLD": "warn", "REQUEST_INFO": "warn"}.get(d["decision"], "fail"),
+    st.done({"APPROVE": "ok", "HOLD": "warn", "REQUEST_INFO": "warn", "NEEDS_APPROVAL": "warn"}.get(d["decision"], "fail"),
             d["headline"], d)
 
 

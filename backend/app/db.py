@@ -56,8 +56,10 @@ class Run(SQLModel, table=True):
     total: float = 0.0
     duration_ms: int = 0
 
-    # human review
-    review_status: str = ""  # "" | approved | rejected
+    # human review / approval policy
+    required_approvals: list = Field(default_factory=list, sa_column=Column(JSON))  # ["reviewer", "finance_manager"]
+    approvals: list = Field(default_factory=list, sa_column=Column(JSON))  # [{name, role, action, comment, ts}]
+    review_status: str = ""  # "" | approved | rejected   (final human outcome)
     review_comment: str = ""
     reviewed_at: Optional[datetime] = None
 
@@ -97,6 +99,19 @@ class AuditLog(SQLModel, table=True):
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
+    _add_missing_columns()
+
+
+def _add_missing_columns() -> None:
+    """Tiny migration: add columns introduced after the DB was first created."""
+    from sqlalchemy import text
+    with engine.begin() as conn:
+        for table in SQLModel.metadata.sorted_tables:
+            existing = {row[1] for row in conn.execute(text(f"PRAGMA table_info('{table.name}')"))}
+            for col in table.columns:
+                if col.name not in existing:
+                    ddl = "JSON DEFAULT '[]'" if isinstance(col.type, JSON) else "TEXT DEFAULT ''"
+                    conn.execute(text(f"ALTER TABLE '{table.name}' ADD COLUMN {col.name} {ddl}"))
 
 
 def session() -> Session:

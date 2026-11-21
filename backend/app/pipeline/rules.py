@@ -245,7 +245,35 @@ def run_rules(run_id: int, file_hash: str, norm: dict, vendor: dict, po: dict) -
             R.append(_r("R15", "Invoice date plausible", "pass", f"Dated {d}{amb}."))
     else:
         R.append(_r("R15", "Invoice date plausible", "skip", "No date."))
+
+    # R16 approval limit (policy, not a data problem)
+    R.append(approval_limit_rule(norm.get("total"), norm.get("currency")))
     return R
+
+
+def usd_equivalent(amount, currency) -> float | None:
+    rate = config.FX_TO_USD.get((currency or "").upper())
+    if amount is None or rate is None:
+        return None
+    return round(amount * rate, 2)
+
+
+def approval_limit_rule(total, currency) -> dict:
+    limit = config.APPROVAL_LIMIT_USD
+    name = f"Within auto-approval limit (USD {limit:,.0f})"
+    if total is None:
+        return _r("R16", name, "skip", "No total.")
+    usd = usd_equivalent(total, currency)
+    if usd is None:
+        return _r("R16", name, "warn", f"No FX rate for {currency}; cannot check the limit, so approval is required.",
+                  "approval", limit_usd=limit)
+    conv = "" if (currency or "").upper() == "USD" else f" (≈ USD {usd:,.2f})"
+    if usd > limit:
+        return _r("R16", name, "warn",
+                  f"{currency} {total:,.2f}{conv} is above the USD {limit:,.0f} auto-approval limit — "
+                  f"a finance manager must approve.", "approval", usd=usd, limit_usd=limit)
+    return _r("R16", name, "pass", f"{currency} {total:,.2f}{conv} is within the USD {limit:,.0f} limit.",
+              usd=usd, limit_usd=limit)
 
 
 def _line_overlap(a: list, b: list) -> float:

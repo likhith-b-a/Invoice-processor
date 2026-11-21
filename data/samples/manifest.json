@@ -54,5 +54,53 @@
     "simulated_sender": "accounts@helixlab.com",
     "expect": "REJECT",
     "total": 3890.0
+  },
+  {
+    "file": "08_northwind_INV-NW-88302_over_limit.pdf",
+    "title": "Policy \u2014 clean invoice above approval limit",
+    "scenario": "approval_limit",
+    "simulated_sender": "billing@northwind-supplies.com",
+    "expect": "NEEDS_APPROVAL",
+    "total": 22516.0
+  },
+  {
+    "file": "09_sunrise_SPL-2026-0419_gst.pdf",
+    "title": "India: GST split CGST + SGST, lakh number format (INR)",
+    "scenario": "india_gst",
+    "simulated_sender": "accounts@sunrisepack.in",
+    "expect": "APPROVE",
+    "total": 269040.0
+  },
+  {
+    "file": "10_nordic_scan_NFC-7781.pdf",
+    "title": "Scanned: Finnish catering invoice, 14% food VAT (EUR)",
+    "scenario": "scan_eu",
+    "simulated_sender": "laskutus@nordicfresh.fi",
+    "expect": "APPROVE",
+    "total": 4719.6
+  },
+  {
+    "file": "11_atlas_scan_AFS-30344_price_increase.pdf",
+    "title": "Scanned: monthly service billed 5% above PO price",
+    "scenario": "scan_price_variance",
+    "simulated_sender": "billing@atlasfacility.com",
+    "expect": "HOLD",
+    "total": 2542.5
+  },
+  {
+    "file": "12_quantum_QPS-5520_extra_charge.pdf",
+    "title": "Extra 'rush fee' line that is not on the PO",
+    "scenario": "unplanned_charge",
+    "simulated_sender": "ar@quantumprint.com",
+    "expect": "HOLD",
+    "total": 3006.82
+  },
+  {
+    "file": "13_greenleaf_GL-88120_partial_gbp.pdf",
+    "title": "Partial delivery in GBP: over limit after FX conversion",
+    "scenario": "fx_approval_limit",
+    "simulated_sender": "invoices@greenleaf-it.co.uk",
+    "expect": "NEEDS_APPROVAL",
+    "total": 11400.0
   }
 ]

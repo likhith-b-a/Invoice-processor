@@ -6,9 +6,24 @@
     "issued": "2026-10-28",
     "status": "open",
     "lines": [
-      {"sku": "NW-PAP-A4", "description": "A4 copy paper, 80gsm (box of 5 reams)", "quantity": 50, "unit_price": 42.00},
-      {"sku": "NW-TON-26X", "description": "Toner cartridge HP 26X black", "quantity": 20, "unit_price": 89.50},
-      {"sku": "NW-CHR-ERG", "description": "Ergonomic mesh office chair", "quantity": 10, "unit_price": 245.00}
+      {
+        "sku": "NW-PAP-A4",
+        "description": "A4 copy paper, 80gsm (box of 5 reams)",
+        "quantity": 50,
+        "unit_price": 42.0
+      },
+      {
+        "sku": "NW-TON-26X",
+        "description": "Toner cartridge HP 26X black",
+        "quantity": 20,
+        "unit_price": 89.5
+      },
+      {
+        "sku": "NW-CHR-ERG",
+        "description": "Ergonomic mesh office chair",
+        "quantity": 10,
+        "unit_price": 245.0
+      }
     ]
   },
   {
@@ -18,9 +33,24 @@
     "issued": "2026-10-30",
     "status": "open",
     "lines": [
-      {"sku": "AC-GLV-N", "description": "Nitrile safety gloves (box of 100)", "quantity": 200, "unit_price": 6.25},
-      {"sku": "AC-HAT-W", "description": "Hard hat, white, ANSI Type I", "quantity": 50, "unit_price": 18.40},
-      {"sku": "AC-VST-HV", "description": "Hi-vis safety vest, class 2", "quantity": 100, "unit_price": 9.80}
+      {
+        "sku": "AC-GLV-N",
+        "description": "Nitrile safety gloves (box of 100)",
+        "quantity": 200,
+        "unit_price": 6.25
+      },
+      {
+        "sku": "AC-HAT-W",
+        "description": "Hard hat, white, ANSI Type I",
+        "quantity": 50,
+        "unit_price": 18.4
+      },
+      {
+        "sku": "AC-VST-HV",
+        "description": "Hi-vis safety vest, class 2",
+        "quantity": 100,
+        "unit_price": 9.8
+      }
     ]
   },
   {
@@ -30,8 +60,18 @@
     "issued": "2026-10-15",
     "status": "open",
     "lines": [
-      {"sku": "BL-FRT-HR", "description": "FTL freight Hamburg to Rotterdam", "quantity": 4, "unit_price": 1850.00},
-      {"sku": "BL-CUS-HD", "description": "Customs handling and documentation", "quantity": 4, "unit_price": 225.00}
+      {
+        "sku": "BL-FRT-HR",
+        "description": "FTL freight Hamburg to Rotterdam",
+        "quantity": 4,
+        "unit_price": 1850.0
+      },
+      {
+        "sku": "BL-CUS-HD",
+        "description": "Customs handling and documentation",
+        "quantity": 4,
+        "unit_price": 225.0
+      }
     ]
   },
   {
@@ -41,7 +81,12 @@
     "issued": "2026-09-01",
     "status": "open",
     "lines": [
-      {"sku": "BL-WH-PAL", "description": "Pallet storage, Hamburg warehouse (monthly, 40 pallets)", "quantity": 12, "unit_price": 640.00}
+      {
+        "sku": "BL-WH-PAL",
+        "description": "Pallet storage, Hamburg warehouse (monthly, 40 pallets)",
+        "quantity": 12,
+        "unit_price": 640.0
+      }
     ]
   },
   {
@@ -51,7 +96,12 @@
     "issued": "2026-09-20",
     "status": "open",
     "lines": [
-      {"sku": "CC-MIG-HR", "description": "Cloud migration consulting (hourly)", "quantity": 120, "unit_price": 150.00}
+      {
+        "sku": "CC-MIG-HR",
+        "description": "Cloud migration consulting (hourly)",
+        "quantity": 120,
+        "unit_price": 150.0
+      }
     ]
   },
   {
@@ -61,9 +111,24 @@
     "issued": "2026-09-05",
     "status": "open",
     "lines": [
-      {"sku": "PP-BR-M1", "description": "Brand refresh - Milestone 1: discovery and moodboards", "quantity": 1, "unit_price": 4800.00},
-      {"sku": "PP-BR-M2", "description": "Brand refresh - Milestone 2: identity system and logo suite", "quantity": 1, "unit_price": 4800.00},
-      {"sku": "PP-BR-M3", "description": "Brand refresh - Milestone 3: guidelines and asset handoff", "quantity": 1, "unit_price": 4800.00}
+      {
+        "sku": "PP-BR-M1",
+        "description": "Brand refresh - Milestone 1: discovery and moodboards",
+        "quantity": 1,
+        "unit_price": 4800.0
+      },
+      {
+        "sku": "PP-BR-M2",
+        "description": "Brand refresh - Milestone 2: identity system and logo suite",
+        "quantity": 1,
+        "unit_price": 4800.0
+      },
+      {
+        "sku": "PP-BR-M3",
+        "description": "Brand refresh - Milestone 3: guidelines and asset handoff",
+        "quantity": 1,
+        "unit_price": 4800.0
+      }
     ]
   },
   {
@@ -73,8 +138,18 @@
     "issued": "2026-11-03",
     "status": "open",
     "lines": [
-      {"sku": "NW-MON-27", "description": "27-inch IPS monitor, QHD", "quantity": 15, "unit_price": 189.00},
-      {"sku": "NW-ARM-DL", "description": "Dual monitor arm, desk clamp", "quantity": 8, "unit_price": 64.00}
+      {
+        "sku": "NW-MON-27",
+        "description": "27-inch IPS monitor, QHD",
+        "quantity": 15,
+        "unit_price": 189.0
+      },
+      {
+        "sku": "NW-ARM-DL",
+        "description": "Dual monitor arm, desk clamp",
+        "quantity": 8,
+        "unit_price": 64.0
+      }
     ]
   },
   {
@@ -84,7 +159,126 @@
     "issued": "2026-06-11",
     "status": "closed",
     "lines": [
-      {"sku": "AC-GLV-N", "description": "Nitrile safety gloves (box of 100)", "quantity": 100, "unit_price": 6.10}
+      {
+        "sku": "AC-GLV-N",
+        "description": "Nitrile safety gloves (box of 100)",
+        "quantity": 100,
+        "unit_price": 6.1
+      }
+    ]
+  },
+  {
+    "po_number": "PO-1009",
+    "vendor_id": "V001",
+    "currency": "USD",
+    "issued": "2026-11-05",
+    "status": "open",
+    "lines": [
+      {
+        "sku": "NW-DSK-SIT",
+        "description": "Electric sit-stand desk, 160x80",
+        "quantity": 40,
+        "unit_price": 520.0
+      }
+    ]
+  },
+  {
+    "po_number": "PO-1010",
+    "vendor_id": "V007",
+    "currency": "INR",
+    "issued": "2026-10-20",
+    "status": "open",
+    "lines": [
+      {
+        "sku": "SP-BOX-3P",
+        "description": "3-ply corrugated shipping box, 18x12x10 in",
+        "quantity": 5000,
+        "unit_price": 38.0
+      },
+      {
+        "sku": "SP-TAPE-48",
+        "description": "BOPP packing tape 48mm x 65m",
+        "quantity": 400,
+        "unit_price": 95.0
+      }
+    ]
+  },
+  {
+    "po_number": "PO-1011",
+    "vendor_id": "V008",
+    "currency": "EUR",
+    "issued": "2026-11-02",
+    "status": "open",
+    "lines": [
+      {
+        "sku": "NF-EVT-STF",
+        "description": "Event catering staff (full day)",
+        "quantity": 1,
+        "unit_price": 2400.0
+      },
+      {
+        "sku": "NF-LUN-PLT",
+        "description": "Lunch platter per person",
+        "quantity": 120,
+        "unit_price": 14.5
+      }
+    ]
+  },
+  {
+    "po_number": "PO-1012",
+    "vendor_id": "V009",
+    "currency": "USD",
+    "issued": "2026-01-05",
+    "status": "open",
+    "lines": [
+      {
+        "sku": "AF-CLN-MO",
+        "description": "Office cleaning service - monthly",
+        "quantity": 12,
+        "unit_price": 1850.0
+      },
+      {
+        "sku": "AF-WIN-QT",
+        "description": "Window cleaning - quarterly",
+        "quantity": 4,
+        "unit_price": 600.0
+      }
+    ]
+  },
+  {
+    "po_number": "PO-1013",
+    "vendor_id": "V010",
+    "currency": "USD",
+    "issued": "2026-11-06",
+    "status": "open",
+    "lines": [
+      {
+        "sku": "QP-BAN-RU",
+        "description": "Roll-up trade show banner 85x200cm",
+        "quantity": 6,
+        "unit_price": 145.0
+      },
+      {
+        "sku": "QP-BRO-A4",
+        "description": "A4 tri-fold brochure, 170gsm",
+        "quantity": 2000,
+        "unit_price": 0.85
+      }
+    ]
+  },
+  {
+    "po_number": "PO-1014",
+    "vendor_id": "V011",
+    "currency": "GBP",
+    "issued": "2026-10-29",
+    "status": "open",
+    "lines": [
+      {
+        "sku": "GL-LT14-PRO",
+        "description": "14-inch business laptop, 32GB RAM, 1TB SSD",
+        "quantity": 25,
+        "unit_price": 950.0
+      }
     ]
   }
 ]

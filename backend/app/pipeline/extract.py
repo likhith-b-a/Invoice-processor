@@ -88,7 +88,8 @@ def _gemini(doc: dict, pdf_bytes: bytes, pages_png: list[bytes], model: str) -> 
     from google import genai
     from google.genai import types
 
-    client = genai.Client(api_key=config.GEMINI_API_KEY)
+    client = genai.Client(api_key=config.GEMINI_API_KEY,
+                          http_options=types.HttpOptions(timeout=config.GEMINI_TIMEOUT_S * 1000))
     parts: list = []
     if doc["doc_type"] == "scanned":
         parts += [types.Part.from_bytes(data=p, mime_type="image/png") for p in pages_png]
@@ -97,16 +98,24 @@ def _gemini(doc: dict, pdf_bytes: bytes, pages_png: list[bytes], model: str) -> 
         parts.append(types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf"))
     parts.append(PROMPT)
 
-    cfg_kwargs = dict(response_mime_type="application/json", temperature=0)
-    try:
-        cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
-        cfg = types.GenerateContentConfig(**cfg_kwargs)
-    except Exception:  # older SDKs / models without thinking control
-        cfg_kwargs.pop("thinking_config", None)
-        cfg = types.GenerateContentConfig(**cfg_kwargs)
+    base = dict(response_mime_type="application/json", temperature=0)
+    configs = [types.GenerateContentConfig(**base)]
+    if "2.5" in model:  # 2.5 models think by default; turning it off makes extraction ~3x faster
+        configs.insert(0, types.GenerateContentConfig(**base, thinking_config=types.ThinkingConfig(thinking_budget=0)))
 
-    resp = client.models.generate_content(model=model, contents=parts, config=cfg)
-    return _parse_json(resp.text or "")
+    last: Exception | None = None
+    for attempt, cfg in enumerate(configs + configs[-1:]):  # last config gets one retry for transient 503s
+        try:
+            resp = client.models.generate_content(model=model, contents=parts, config=cfg)
+            return _parse_json(resp.text or "")
+        except Exception as e:  # noqa: BLE001
+            last = e
+            msg = str(e)
+            if "429" in msg or "404" in msg or "NOT_FOUND" in msg:
+                raise  # quota / retired model: move to the next model immediately
+            if "503" in msg or "UNAVAILABLE" in msg:
+                time.sleep(2)
+    raise last  # type: ignore[misc]
 
 
 # ---------------------------------------------------------------- Ollama (local)

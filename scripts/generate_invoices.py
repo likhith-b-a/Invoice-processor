@@ -24,7 +24,22 @@ BILL_TO = ["Meridian Retail Group Inc.", "Accounts Payable", "500 Harbor Blvd, S
            "San Francisco, CA 94111", "ap@meridian-retail.com"]
 
 
+def indian(v: float) -> str:
+    """Indian digit grouping: 2,69,040.00"""
+    whole, frac = f"{v:.2f}".split(".")
+    head, tail = whole[:-3], whole[-3:]
+    groups = []
+    while len(head) > 2:
+        groups.insert(0, head[-2:])
+        head = head[:-2]
+    if head:
+        groups.insert(0, head)
+    return ",".join(groups + [tail]) + "." + frac
+
+
 def money(v: float, fmt: str, sym: str = "") -> str:
+    if fmt == "in":
+        return f"{sym}{indian(v)}"
     s = f"{v:,.2f}"
     if fmt == "eu":
         s = s.replace(",", "X").replace(".", ",").replace("X", ".")
@@ -213,7 +228,12 @@ def _table(c, inv, calc, y, W, header_fill=None, left=20 * mm, font="Helvetica",
                   (f"darin enthaltene MwSt. {rate:g}% / incl. VAT {rate:g}%", money(calc["tax"], fmt, sym), False)]
     else:
         tl = inv.get("tax_label_line", f"Sales Tax ({rate:g}%)")
-        totals = [("Subtotal", money(calc["subtotal"], fmt, sym), False), (tl, money(calc["tax"], fmt, sym), False),
+        if inv.get("tax_split"):  # e.g. India: CGST + SGST
+            n = len(inv["tax_split"])
+            tax_rows = [(lbl, money(round(calc["tax"] / n, 2), fmt, sym), False) for lbl in inv["tax_split"]]
+        else:
+            tax_rows = [(tl, money(calc["tax"], fmt, sym), False)]
+        totals = [("Subtotal", money(calc["subtotal"], fmt, sym), False), *tax_rows,
                   (inv.get("total_label", "Total Due"), money(calc["total"], fmt, sym), True)]
     for label, val, bold in totals:
         c.setFont((f"{font}-Bold" if font != "Courier" else "Courier-Bold") if bold else font, 10 if bold else 9)
@@ -254,29 +274,29 @@ def render(inv: dict, path: Path):
     calc = compute(inv)
     fn, size = LAYOUTS[inv["style"]]
     buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=size)
+    c = canvas.Canvas(buf, pagesize=size, invariant=1)
     c.setTitle(f"Invoice {inv.get('number') or ''}")
     fn(c, inv, calc)
     c.showPage()
     c.save()
     data = buf.getvalue()
     if inv.get("scanned"):
-        data = to_scan(data)
+        data = to_scan(data, inv.get("skew", -0.9), inv.get("noise", 9))
     path.write_bytes(data)
     return calc
 
 
-def to_scan(pdf_bytes: bytes) -> bytes:
+def to_scan(pdf_bytes: bytes, skew: float = -0.9, noise: float = 9) -> bytes:
     """Rasterize, tilt, add noise + blur, JPEG-compress -> image-only PDF (no text layer)."""
     import numpy as np
     import pypdfium2 as pdfium
 
     pdf = pdfium.PdfDocument(pdf_bytes)
     img = pdf[0].render(scale=170 / 72).to_pil().convert("L")
-    img = img.rotate(-0.9, resample=Image.BICUBIC, expand=False, fillcolor=255)
+    img = img.rotate(skew, resample=Image.BICUBIC, expand=False, fillcolor=255)
     arr = np.array(img).astype(np.int16)
     rng = np.random.default_rng(7)
-    arr = arr + rng.normal(0, 9, arr.shape).astype(np.int16)
+    arr = arr + rng.normal(0, noise, arr.shape).astype(np.int16)
     specks = rng.random(arr.shape) < 0.0008
     arr[specks] = 40
     arr = np.clip(arr * 0.96 + 6, 0, 255).astype(np.uint8)  # slightly grey paper
@@ -284,7 +304,10 @@ def to_scan(pdf_bytes: bytes) -> bytes:
     jpg = io.BytesIO()
     img.save(jpg, format="JPEG", quality=55)
     out = io.BytesIO()
-    Image.open(jpg).save(out, format="PDF", resolution=170)
+    import datetime as _dt
+    import time as _t
+    _d = _t.gmtime(1794994200)
+    Image.open(jpg).save(out, format="PDF", resolution=170, creationDate=_d, modDate=_d)
     return out.getvalue()
 
 
@@ -374,6 +397,79 @@ SAMPLES = [
                 "tax_label_line": "Tax", "sym": "$",
                 "lines": [("Benchtop centrifuge, 24-place", "HX-CEN-24", 1, 3890.00)],
                 "bank": ["Wells Fargo", "Routing: 121000248   Account: 5512093384"]},
+    },
+]
+
+SAMPLES.append({
+    "file": "08_northwind_INV-NW-88302_over_limit.pdf", "title": "Policy — clean invoice above approval limit",
+    "scenario": "approval_limit", "simulated_sender": "billing@northwind-supplies.com", "expect": "NEEDS_APPROVAL",
+    "inv": {"style": "classic", "vendor": NORTHWIND, "number": "INV-NW-88302", "date": "November 19, 2026",
+            "due": "December 19, 2026", "po": "PO-1009", "tax_rate": 8.25, "sym": "$",
+            "lines": [("Electric sit-stand desk, 160x80", "NW-DSK-SIT", 40, 520.00)], "bank": BANK_NW},
+})
+
+# ---- second batch of vendors (added later; not processed until you run them)
+SUNRISE = {"name": "Sunrise Packaging Pvt Ltd", "address": ["Plot 14, MIDC Bhosari", "Pune, Maharashtra 411026", "India"],
+           "email": "accounts@sunrisepack.in", "phone": "+91 20 4710 2290", "tax_label": "GSTIN", "tax_id": "27AAKCS4471M1Z5"}
+NORDIC = {"name": "Nordic Fresh Catering Oy", "address": ["Hameentie 31", "00500 Helsinki", "Finland"],
+          "email": "laskutus@nordicfresh.fi", "tax_id": "FI28471930"}
+ATLAS = {"name": "Atlas Facility Services Inc.", "address": ["410 Lakeshore Dr", "Chicago, IL 60611"],
+         "email": "billing@atlasfacility.com", "phone": "(312) 555-0181", "tax_label": "EIN", "tax_id": "36-4471902"}
+QUANTUM = {"name": "Quantum Print & Signage LLC", "address": ["88 Mercer St", "Jersey City, NJ 07302"],
+           "email": "ar@quantumprint.com", "phone": "(201) 555-0147", "tax_label": "EIN", "tax_id": "52-3390187"}
+GREENLEAF = {"name": "Greenleaf IT Hardware Ltd", "address": ["Unit 7, Kings Park", "Manchester M17 1HH", "United Kingdom"],
+             "email": "invoices@greenleaf-it.co.uk", "tax_label": "VAT Reg", "tax_id": "GB193847562"}
+
+SAMPLES += [
+    {
+        "file": "09_sunrise_SPL-2026-0419_gst.pdf", "title": "India: GST split CGST + SGST, lakh number format (INR)",
+        "scenario": "india_gst", "simulated_sender": "accounts@sunrisepack.in", "expect": "APPROVE",
+        "inv": {"style": "classic", "vendor": SUNRISE, "number": "SPL/2026/0419", "date": "16-11-2026", "due": "16-12-2026",
+                "po": "PO-1010", "tax_rate": 18, "fmt": "in", "sym": "Rs. ",
+                "tax_split": ["CGST @ 9%", "SGST @ 9%"], "total_label": "Grand Total (INR)",
+                "lines": [("3-ply corrugated shipping box, 18x12x10 in", "SP-BOX-3P", 5000, 38.00),
+                          ("BOPP packing tape 48mm x 65m", "SP-TAPE-48", 400, 95.00)],
+                "bank": ["HDFC Bank, Bhosari branch", "IFSC: HDFC0001234   A/c No: 50200044718390"],
+                "footer": "Subject to Pune jurisdiction. This is a computer generated invoice."},
+    },
+    {
+        "file": "10_nordic_scan_NFC-7781.pdf", "title": "Scanned: Finnish catering invoice, 14% food VAT (EUR)",
+        "scenario": "scan_eu", "simulated_sender": "laskutus@nordicfresh.fi", "expect": "APPROVE",
+        "inv": {"style": "minimal", "scanned": True, "skew": 0.7, "vendor": NORDIC, "number": "NFC-7781",
+                "date": "18.11.2026", "po": "PO-1011", "tax_rate": 14, "tax_label_line": "ALV / VAT 14%",
+                "total_label": "Yhteensa / Total EUR", "fmt": "eu", "sym": "",
+                "lines": [("Event catering staff (full day)", "NF-EVT-STF", 1, 2400.00),
+                          ("Lunch platter per person", "NF-LUN-PLT", 120, 14.50)],
+                "bank": ["Nordea Bank", "IBAN: FI21 1234 5600 0007 85   BIC: NDEAFIHH"], "terms": "14 pv netto"},
+    },
+    {
+        "file": "11_atlas_scan_AFS-30344_price_increase.pdf", "title": "Scanned: monthly service billed 5% above PO price",
+        "scenario": "scan_price_variance", "simulated_sender": "billing@atlasfacility.com", "expect": "HOLD",
+        "inv": {"style": "classic", "scanned": True, "skew": -1.8, "noise": 12, "vendor": ATLAS, "number": "AFS-30344",
+                "date": "11/15/2026", "due": "12/15/2026", "po": "PO-1012", "tax_rate": 0, "tax_label_line": "Tax (exempt)",
+                "sym": "$",
+                "lines": [("Office cleaning service - November 2026", "AF-CLN-MO", 1, 1942.50),
+                          ("Window cleaning - Q4", "AF-WIN-QT", 1, 600.00)],
+                "bank": ["U.S. Bank", "Routing: 091000022   Account: 1048827733"],
+                "footer": "Rates adjusted per annual CPI escalation effective Nov 1."},
+    },
+    {
+        "file": "12_quantum_QPS-5520_extra_charge.pdf", "title": "Extra 'rush fee' line that is not on the PO",
+        "scenario": "unplanned_charge", "simulated_sender": "ar@quantumprint.com", "expect": "HOLD",
+        "inv": {"style": "modern", "accent": "#7c2d12", "vendor": QUANTUM, "number": "QPS-5520", "date": "Nov 17, 2026",
+                "due": "Dec 17, 2026", "po": "PO-1013", "tax_rate": 6.625, "tax_label_line": "NJ Sales Tax (6.625%)", "sym": "$",
+                "lines": [("Roll-up trade show banner 85x200cm", "QP-BAN-RU", 6, 145.00),
+                          ("A4 tri-fold brochure, 170gsm", "QP-BRO-A4", 2000, 0.85),
+                          ("Rush production fee (48h turnaround)", "QP-RUSH", 1, 250.00)],
+                "bank": ["Citibank N.A.", "Routing: 021000089   Account: 6630014472"]},
+    },
+    {
+        "file": "13_greenleaf_GL-88120_partial_gbp.pdf", "title": "Partial delivery in GBP: over limit after FX conversion",
+        "scenario": "fx_approval_limit", "simulated_sender": "invoices@greenleaf-it.co.uk", "expect": "NEEDS_APPROVAL",
+        "inv": {"style": "minimal", "vendor": GREENLEAF, "number": "GL-INV-88120", "date": "19 November 2026",
+                "po": "PO-1014", "tax_rate": 20, "tax_label_line": "VAT @ 20%", "total_label": "Total GBP", "sym": "GBP ",
+                "lines": [("14-inch business laptop, 32GB RAM, 1TB SSD (delivery 1 of 3)", "GL-LT14-PRO", 10, 950.00)],
+                "bank": ["HSBC UK Bank plc", "IBAN: GB29 HBUK 4012 7612 3456 78   Sort code 40-12-76"], "terms": "Net 30"},
     },
 ]
 

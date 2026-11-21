@@ -54,8 +54,10 @@ def ocr(png_pages: list[bytes]) -> dict:
     all_lines: list[str] = []
     scores: list[float] = []
     low_conf: list[dict] = []
-    for page_png in png_pages:
+    word_boxes: list[dict] = []
+    for page_no, page_png in enumerate(png_pages):
         img = np.array(Image.open(io.BytesIO(page_png)).convert("RGB"))
+        H, W = img.shape[:2]
         result, _ = engine(img)
         if not result:
             continue
@@ -65,6 +67,8 @@ def ocr(png_pages: list[bytes]) -> dict:
             xs = [p[0] for p in box]
             boxes.append({"x": min(xs), "y": (min(ys) + max(ys)) / 2,
                           "h": max(ys) - min(ys), "text": text, "score": float(score)})
+            word_boxes.append({"page": page_no, "text": text, "x0": min(xs) / W, "y0": min(ys) / H,
+                               "x1": max(xs) / W, "y1": max(ys) / H})
             scores.append(float(score))
             if float(score) < 0.8:
                 low_conf.append({"text": text, "score": round(float(score), 2)})
@@ -72,7 +76,7 @@ def ocr(png_pages: list[bytes]) -> dict:
         all_lines.append("")
     avg = round(sum(scores) / len(scores), 3) if scores else 0.0
     return {"text": "\n".join(all_lines).strip(), "avg_confidence": avg,
-            "words": len(scores), "low_confidence": low_conf[:15]}
+            "words": len(scores), "low_confidence": low_conf[:15], "boxes": word_boxes}
 
 
 def _group_lines(boxes: list[dict]) -> list[str]:

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, RotateCcw, Send, Trash2, Mail, ShieldAlert, FileText, ChevronRight } from "lucide-react";
 import { api, fileUrl } from "../api";
+import DocViewer from "../components/DocViewer";
 import { Stamp, StatusIcon, Chip, Money, money, SourceTag, Button, DECISIONS, timeAgo } from "../components/ui";
 
 const STAGES = [
@@ -22,6 +23,7 @@ export default function RunView() {
   const [events, setEvents] = useState([]);
   const [selected, setSelected] = useState(null);
   const [justLanded, setJustLanded] = useState(false);
+  const [hl, setHl] = useState(null);
   const pinned = useRef(false);
 
   useEffect(() => {
@@ -66,6 +68,14 @@ export default function RunView() {
   const view = selected || (done ? "decide" : run.current_stage || "intake");
   const reload = () => api.run(id).then((r) => { setRun(r); setEvents(r.events); });
   const pick = (k) => { pinned.current = true; setSelected(k); };
+  const pickField = async (label, value) => {
+    setHl({ label, value, loading: true, boxes: [] });
+    try {
+      const r = await fetch(`/api/runs/${run.id}/locate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ value }) });
+      const d = await r.json();
+      setHl({ label, value, boxes: d.boxes || [] });
+    } catch { setHl({ label, value, boxes: [] }); }
+  };
 
   return (
     <div className="space-y-5">
@@ -138,7 +148,7 @@ export default function RunView() {
           {done && (view === "decide") ? (
             <DecisionPanel run={run} land={justLanded} onChange={reload} />
           ) : (
-            <StagePanel stage={view} ev={stageState[view]} run={run} />
+            <StagePanel stage={view} ev={stageState[view]} run={run} onPickField={pickField} activeField={hl?.label} />
           )}
           {done && view !== "decide" && (
             <button onClick={() => pick("decide")} className="text-carbon text-[13px] font-semibold inline-flex items-center gap-1">
@@ -148,15 +158,9 @@ export default function RunView() {
         </div>
 
         {/* document */}
-        <section className="sheet overflow-hidden lg:col-span-2 2xl:col-span-1 2xl:sticky 2xl:top-6">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-rule">
-            <span className="eyebrow">Source document</span>
-            <a href={fileUrl(run.id)} target="_blank" rel="noreferrer" className="text-[12px] text-carbon inline-flex items-center gap-1">
-              <FileText size={12} /> {run.filename}
-            </a>
-          </div>
-          <iframe title="Invoice PDF" src={`${fileUrl(run.id)}#toolbar=0&view=FitH`} className="w-full h-[70vh] 2xl:h-[calc(100vh-140px)] bg-sheet-2" />
-        </section>
+        <div className="lg:col-span-2 2xl:col-span-1 2xl:sticky 2xl:top-6">
+          <DocViewer run={run} highlight={hl} onClear={() => setHl(null)} />
+        </div>
       </div>
     </div>
   );
@@ -192,7 +196,7 @@ function DecisionPanel({ run, land, onChange }) {
 
         {run.review_status && (
           <div className={`mt-4 rounded-md p-3 text-[13px] ${eff === "APPROVE" ? "bg-ok-soft" : "bg-bad-soft"}`}>
-            <span className="font-semibold">Reviewer {run.review_status}</span> — final status: {DECISIONS[eff]?.label}.
+            <span className="font-semibold">{run.review_status === "approved" ? "Approved" : "Rejected"} by {(run.approvals || []).filter((a) => a.action === (run.review_status === "approved" ? "approve" : "reject")).map((a) => `${a.name} (${a.role === "finance_manager" ? "Finance manager" : "AP reviewer"})`).join(" + ") || "reviewer"}</span> — final status: {DECISIONS[eff]?.label}.
             {run.review_comment && <span className="text-ink-2"> “{run.review_comment}”</span>}
           </div>
         )}
@@ -230,7 +234,7 @@ function DecisionPanel({ run, land, onChange }) {
         {run.decision === "FRAUD_HOLD" && <FraudCompare run={run} />}
       </section>
 
-      {run.source !== "seed" && ["HOLD", "FRAUD_HOLD", "REQUEST_INFO"].includes(run.decision) && !run.review_status && (
+      {run.source !== "seed" && ["HOLD", "FRAUD_HOLD", "REQUEST_INFO", "NEEDS_APPROVAL"].includes(run.decision) && !run.review_status && (
         <ReviewBox run={run} onChange={onChange} />
       )}
 
@@ -282,18 +286,55 @@ function Compare({ label, file, seen, bad }) {
 }
 
 function ReviewBox({ run, onChange }) {
+  const steps = run.approval_progress?.steps || [];
+  const needsManager = steps.some((x) => x.role === "finance_manager" && !x.by);
   const [comment, setComment] = useState("");
+  const [name, setName] = useState(() => { try { return localStorage.getItem("approver") || ""; } catch { return ""; } });
+  const [role, setRole] = useState(() => (steps.find((x) => !x.by)?.role || "reviewer"));
   const [busy, setBusy] = useState(false);
-  const act = async (a) => { setBusy(true); try { await api.review(run.id, a, comment); await onChange(); } finally { setBusy(false); } };
+  const [err, setErr] = useState("");
+  const act = async (a) => {
+    setBusy(true); setErr("");
+    try { localStorage.setItem("approver", name); } catch {}
+    try { await api.review(run.id, a, comment, name, role); setComment(""); await onChange(); }
+    catch (e) { setErr(e.message); } finally { setBusy(false); }
+  };
   return (
     <section className="sheet p-5">
-      <div className="eyebrow mb-2">Your review</div>
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+        <div className="eyebrow">Sign-off</div>
+        {steps.length > 1 && <span className="text-[12px] text-ink-3">Four-eyes rule: two different people</span>}
+      </div>
+      {steps.length > 0 && (
+        <ol className="flex flex-wrap gap-2 mb-4">
+          {steps.map((st, i) => (
+            <li key={i} className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-[12.5px] ${st.by ? "border-ok/40 bg-ok-soft" : "border-rule"}`}>
+              <StatusIcon status={st.by ? "ok" : "pending"} size={10} />
+              <span className="font-semibold">{st.label}</span>
+              <span className="text-ink-2">{st.by ? `approved by ${st.by}` : "waiting"}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+      <div className="grid sm:grid-cols-[1fr_200px] gap-2 mb-2">
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name"
+          className="rounded-md border border-rule bg-sheet-2 px-2.5 py-1.5 text-[13px]" aria-label="Your name" />
+        <select value={role} onChange={(e) => setRole(e.target.value)} aria-label="Your role"
+          className="rounded-md border border-rule bg-sheet-2 px-2 py-1.5 text-[13px]">
+          <option value="reviewer">AP reviewer</option>
+          <option value="finance_manager">Finance manager</option>
+        </select>
+      </div>
       <textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={2}
-        placeholder={run.decision === "FRAUD_HOLD" ? "e.g. Called Acme on number on file — bank change not genuine" : "Add a note for the audit trail"}
+        placeholder={run.decision === "FRAUD_HOLD" ? "e.g. Called Acme on the number on file — bank change not genuine" : "Add a note for the audit trail"}
         className="w-full rounded-md border border-rule bg-sheet-2 p-2.5 text-[13px]" aria-label="Review comment" />
+      {needsManager && role !== "finance_manager" && steps.every((x) => x.role === "finance_manager" || x.by) && (
+        <div className="text-[12.5px] text-warn mt-1.5">Only a finance manager can give the remaining approval.</div>
+      )}
+      {err && <div className="text-[12.5px] text-bad mt-1.5">{err}</div>}
       <div className="flex flex-wrap gap-2 mt-2.5">
-        <Button variant="ok" disabled={busy} onClick={() => act("approve")}>Approve for payment</Button>
-        <Button variant="bad" disabled={busy} onClick={() => act("reject")}>Reject invoice</Button>
+        <Button variant="ok" disabled={busy || !name.trim()} onClick={() => act("approve")}>Approve for payment</Button>
+        <Button variant="bad" disabled={busy || !name.trim()} onClick={() => act("reject")}>Reject invoice</Button>
       </div>
     </section>
   );
@@ -336,7 +377,7 @@ function DraftBox({ draft, onChange }) {
 }
 
 /* ------------------------------------------------------------------ stage detail */
-function StagePanel({ stage, ev, run }) {
+function StagePanel({ stage, ev, run, onPickField, activeField }) {
   const meta = STAGES.find((s) => s[0] === stage);
   if (!ev) return <section className="sheet p-6 text-ink-3">Waiting for {meta?.[1] || stage}…</section>;
   const d = ev.detail || {};
@@ -354,7 +395,7 @@ function StagePanel({ stage, ev, run }) {
           {stage === "intake" && <KV obj={d} />}
           {stage === "detect" && <KV obj={d} />}
           {stage === "ocr" && <OcrView d={d} />}
-          {stage === "extract" && <ExtractView d={d} />}
+          {stage === "extract" && <ExtractView d={d} onPick={onPickField} active={activeField} />}
           {stage === "normalize" && <NormalizeView d={d} />}
           {stage === "vendor" && <VendorView d={d} />}
           {stage === "match" && <MatchView d={d} currency={run.currency} />}
@@ -416,7 +457,7 @@ function Pre({ text, label }) {
   );
 }
 
-function ExtractView({ d }) {
+function ExtractView({ d, onPick, active }) {
   return (
     <div className="space-y-5">
       <div>
@@ -431,13 +472,17 @@ function ExtractView({ d }) {
           ))}
         </div>
       </div>
+      <div className="text-[12px] text-ink-3">Click a value to highlight where it was read on the page.</div>
       <table className="w-full text-[13px]">
         <thead><tr className="eyebrow border-b border-rule"><th className="text-left font-normal py-1.5">Field</th><th className="text-left font-normal">Value</th><th className="text-left font-normal w-28">Confidence</th></tr></thead>
         <tbody>
           {d.fields?.map((f) => (
-            <tr key={f.field} className="border-b border-rule last:border-0">
+            <tr key={f.field} className={`border-b border-rule last:border-0 ${active === f.field.replaceAll("_", " ") ? "bg-carbon-soft" : ""}`}>
               <td className="py-1.5 text-ink-2">{f.field.replaceAll("_", " ")}</td>
-              <td className="num break-all pr-3">{f.value === null || f.value === undefined ? <span className="text-ink-3">not found</span> : String(f.value)}</td>
+              <td className="num break-all pr-3">{f.value === null || f.value === undefined ? <span className="text-ink-3">not found</span>
+                : typeof f.value === "boolean" ? String(f.value)
+                : <button onClick={() => onPick?.(f.field.replaceAll("_", " "), f.value)} title="Show on page"
+                    className="text-left underline decoration-dotted decoration-ink-3 underline-offset-4 hover:text-carbon hover:decoration-carbon">{String(f.value)}</button>}</td>
               <td><Conf v={f.confidence} /></td>
             </tr>
           ))}

@@ -5,7 +5,7 @@ import { api } from "../api";
 import { useRuns } from "../App";
 import { Chip, DecisionChip, Empty, Money, timeAgo } from "../components/ui";
 
-const ORDER = { FRAUD_HOLD: 0, HOLD: 1, REQUEST_INFO: 2 };
+const ORDER = { FRAUD_HOLD: 0, HOLD: 1, NEEDS_APPROVAL: 2, REQUEST_INFO: 3 };
 
 export default function Review() {
   const { runs, tick } = useRuns();
@@ -30,7 +30,7 @@ export default function Review() {
       <header>
         <div className="eyebrow mb-1">Review queue</div>
         <h1 className="display text-[28px] leading-none">Waiting on a person</h1>
-        <p className="text-ink-2 mt-2">Fraud holds first, then reviews, then invoices waiting on the vendor.</p>
+        <p className="text-ink-2 mt-2">Fraud holds first, then reviews, then invoices above the approval limit, then invoices waiting on the vendor.</p>
       </header>
 
       <section className="sheet overflow-hidden">

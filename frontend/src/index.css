@@ -189,3 +189,13 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .stamp-land, .row-flash, .spin, .pulse-dot { animation: none !important; }
 }
+
+/* field highlight on the source page */
+.hl-box {
+  border: 2px solid var(--carbon);
+  background: color-mix(in srgb, var(--carbon) 16%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--carbon) 18%, transparent);
+  animation: hl-in 380ms ease-out both;
+}
+@keyframes hl-in { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .hl-box { animation: none; } }

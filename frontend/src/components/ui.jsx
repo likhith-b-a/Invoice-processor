@@ -6,9 +6,10 @@ export const DECISIONS = {
   REQUEST_INFO: { label: "Info requested", stamp: "Info needed", tone: "info" },
   REJECT: { label: "Rejected", stamp: "Rejected", tone: "bad" },
   FRAUD_HOLD: { label: "Fraud hold", stamp: "Fraud hold", tone: "bad" },
+  NEEDS_APPROVAL: { label: "Awaiting approval", stamp: "Approval req'd", tone: "carbon" },
 };
 
-const TONE_VAR = { ok: "var(--ok)", warn: "var(--warn)", bad: "var(--bad)", info: "var(--info)", muted: "var(--ink-3)" };
+const TONE_VAR = { ok: "var(--ok)", warn: "var(--warn)", bad: "var(--bad)", info: "var(--info)", muted: "var(--ink-3)", carbon: "var(--carbon)" };
 const TONE_CLS = {
   ok: "bg-ok-soft text-ok", warn: "bg-warn-soft text-warn", bad: "bg-bad-soft text-bad",
   info: "bg-info-soft text-info", muted: "bg-muted-soft text-ink-2", carbon: "bg-carbon-soft text-carbon",
