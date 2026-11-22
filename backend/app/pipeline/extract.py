@@ -61,6 +61,8 @@ def extract(doc: dict, pdf_bytes: bytes, pages_png: list[bytes], file_hash: str 
     """Returns {"data": {...}, "extractor": name, "attempts": [...]}"""
     attempts = []
     chain = []
+    if config.CACHE_FIRST and file_hash:
+        chain.append(("cache", lambda d, b, p: _cache_get(file_hash)))
     if config.GEMINI_API_KEY:
         for model in config.GEMINI_MODELS:
             chain.append((model, lambda d, b, p, m=model: _gemini(d, b, p, m)))

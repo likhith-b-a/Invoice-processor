@@ -4,6 +4,7 @@ An automated accounts-payable process. An invoice PDF arrives by **email**, **up
 
 📘 **Full walkthrough: [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md)**: architecture, every stage, rules, edge cases, API, configuration and design decisions.
 🎬 **Demo walkthrough: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)**
+🗺️ **Diagrams:** [architecture](docs/PROJECT_GUIDE.md#4-architecture) · [decision flow and state machines](docs/PROJECT_GUIDE.md#state-diagrams)
 
 **Decisions:** `Approve` · `Awaiting approval` (over the limit) · `Hold for review` · `Request info` (drafts an email to the vendor) · `Reject` · `Fraud hold`
 

@@ -34,6 +34,8 @@ GEMINI_MODELS = [m.strip() for m in os.getenv(
     f"{GEMINI_MODEL},gemini-3.5-flash-lite,gemini-flash-lite-latest,gemini-2.5-flash-lite,gemini-3.8-flash").split(",")
     if m.strip()]
 GEMINI_TIMEOUT_S = int(os.getenv("GEMINI_TIMEOUT_S", "40"))
+# demo mode: reuse an earlier Gemini read of the same file before calling Gemini again
+CACHE_FIRST = os.getenv("CACHE_FIRST", "0").strip().lower() in ("1", "true", "yes")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5vl:3b")
 

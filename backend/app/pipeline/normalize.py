@@ -208,9 +208,23 @@ def ground(ext: dict, text: str, total: float | None) -> dict:
         tail = acct[-6:]
         res["bank_account"] = tail in tt
     if total is not None:
-        variants = {f"{total:,.2f}", f"{total:.2f}", f"{total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")}
+        variants = {f"{total:,.2f}", f"{total:.2f}", f"{total:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
+                    _indian(total)}
         res["total"] = any(_norm_text(v) in t for v in variants)
     return res
+
+
+def _indian(x: float) -> str:
+    """Indian digit grouping: 269040.0 -> '2,69,040.00'."""
+    whole, frac = f"{x:.2f}".split(".")
+    if len(whole) > 3:
+        head, tail = whole[:-3], whole[-3:]
+        groups = []
+        while len(head) > 2:
+            groups.insert(0, head[-2:])
+            head = head[:-2]
+        whole = ",".join([head, *groups, tail]) if head else ",".join([*groups, tail])
+    return f"{whole}.{frac}"
 
 
 def days_between(a: str | None, b: str | None) -> int | None:

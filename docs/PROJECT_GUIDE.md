@@ -137,6 +137,49 @@ cd frontend; npm run dev          # http://localhost:5173, proxies /api to :8000
                 └─────────────────────────────────────────────┘
 ```
 
+The same picture as a diagram (renders on GitHub):
+
+```mermaid
+flowchart LR
+    subgraph Intake["Intake channels"]
+        E["Email inbox<br/>IMAP poll"]
+        U["Upload<br/>browser"]
+        F["Watched folder<br/>data/inbox"]
+    end
+
+    Q[["Queue<br/>1 worker thread"]]
+    E --> Q
+    U --> Q
+    F --> Q
+
+    subgraph P["Pipeline (runner.py)"]
+        direction LR
+        S1[Intake] --> S2[Detect] --> S3[OCR] --> S4[Extract] --> S5[Normalize]
+        S5 --> S6[Vendor] --> S7[PO match] --> S8[Validate] --> S9[Decide]
+    end
+    Q --> S1
+
+    subgraph X["Extractor chain"]
+        direction TB
+        G1["Gemini models<br/>rotated on quota errors"] --> C1["Saved read<br/>data/cache"] --> O1["Ollama<br/>local vision model"] --> R1["Regex parser"]
+    end
+    S4 -.-> X
+
+    M[("Master data<br/>vendors, POs")]
+    D[("SQLite<br/>runs, events, audit")]
+    S6 -.-> M
+    S7 -.-> M
+    S9 --> D
+
+    API["FastAPI<br/>REST + SSE"]
+    D --> API
+    API -->|live events| UI["React UI<br/>dashboard, live run, review"]
+    UI -->|approve / reject| API
+    API -->|send drafted email| SMTP["SMTP"]
+```
+
+With `CACHE_FIRST=1` the saved read is tried before Gemini (demo mode).
+
 **Key building blocks**
 
 | Piece | Technology | Why |
@@ -307,10 +350,14 @@ The tolerances (price 2%, amount 2%) are configurable in `.env`. The other thres
 **Step 1 — Pick the most severe outcome.** Collect every rule that warned or failed, then take the most severe outcome class present:
 
 ```
-fraud  >  reject  >  request_info  >  review  >  (nothing)
-  │         │            │              │            │
-FRAUD_HOLD REJECT   REQUEST_INFO      HOLD        APPROVE
+fraud  >  reject  >  request_info  >  review  >  approval  >  (nothing)
+  │         │            │              │           │             │
+FRAUD_HOLD REJECT   REQUEST_INFO      HOLD    NEEDS_APPROVAL    APPROVE
 ```
+
+("approval" comes only from R16: everything passed, but the total is over the approval limit.)
+
+The flowchart and state diagrams under [State diagrams](#state-diagrams) show the same logic visually.
 
 **Step 2 — Build the explanation.**
 
@@ -339,6 +386,81 @@ FRAUD_HOLD REJECT   REQUEST_INFO      HOLD        APPROVE
 | Fraud hold, any amount | AP reviewer **and** Finance manager, two different people |
 
 A rejection by anyone rejects the invoice. Once every requirement is filled, the **effective decision** becomes Approve and the invoice counts against the PO balance. Every approval is recorded in the audit trail with the approver's name and role.
+
+### State diagrams
+
+**1. Processing state of a run** (`Run.status`). This is about the machine, not the invoice: did the pipeline finish?
+
+```mermaid
+stateDiagram-v2
+    [*] --> queued: PDF arrives (email, upload, folder)
+    queued --> running: worker picks it up
+    running --> done: all 9 stages finished
+    running --> error: a stage crashed (e.g. unreadable PDF)
+    done --> queued: Re-run (clears decision and approvals)
+    error --> queued: Re-run
+    done --> [*]
+```
+
+**2. Which decision the pipeline gives.** Every rule that warns or fails carries an outcome class. The most severe class present wins; the order is fixed.
+
+```mermaid
+flowchart TD
+    A["Validation finished<br/>16 rules"] --> B{"Any fraud rule failed?<br/>R04 bank changed, R05 lookalike domain"}
+    B -->|yes| FH(["FRAUD_HOLD"])
+    B -->|no| C{"Any reject rule failed?<br/>R03 inactive vendor, R07 PO closed, R13 exact duplicate"}
+    C -->|yes| RJ(["REJECT"])
+    C -->|no| D{"Anything missing?<br/>R01 required fields, R06 no PO found"}
+    D -->|yes| RI(["REQUEST_INFO<br/>+ drafted vendor email"])
+    D -->|no| E{"Any review warning?<br/>price, quantity, maths, overrun,<br/>near-duplicate, low confidence, date"}
+    E -->|yes| H(["HOLD"])
+    E -->|no| F{"Total over approval limit?<br/>R16: above USD 10,000 equivalent"}
+    F -->|yes| NA(["NEEDS_APPROVAL"])
+    F -->|no| AP(["APPROVE<br/>automatic"])
+```
+
+**3. What happens after the decision** (`Run.review_status` and approvals). This is the human part: who must sign before the invoice is paid.
+
+```mermaid
+stateDiagram-v2
+    state "Auto-approved" as Auto
+    state "Rejected by pipeline" as AutoRej
+    state "Waiting for sign-off" as Wait
+    state "Partly signed" as Partial
+    state "Approved (final)" as Approved
+    state "Rejected (final)" as Rejected
+
+    [*] --> Auto: APPROVE, under the limit
+    [*] --> Wait: HOLD, REQUEST_INFO, FRAUD_HOLD, NEEDS_APPROVAL
+    [*] --> AutoRej: REJECT
+
+    Wait --> Partial: one approval, more roles still needed
+    Wait --> Approved: last required approval given
+    Partial --> Approved: different person fills the remaining role
+    Partial --> Partial: same person tries again (blocked, 409)
+    Wait --> Rejected: anyone rejects
+    Partial --> Rejected: anyone rejects
+
+    AutoRej --> Approved: reviewer overrides
+    AutoRej --> Rejected: reviewer confirms
+    Auto --> Rejected: reviewer rejects after the fact
+
+    Auto --> [*]: counts against PO balance
+    Approved --> [*]: counts against PO balance, ready to pay
+    Rejected --> [*]
+```
+
+Required roles per decision (from `decide.py → required_approvals`):
+
+| Decision | Under limit | Over limit |
+|---|---|---|
+| APPROVE | nobody | — (becomes NEEDS_APPROVAL) |
+| NEEDS_APPROVAL | — | Finance manager |
+| HOLD / REQUEST_INFO | AP reviewer | AP reviewer + Finance manager |
+| FRAUD_HOLD | AP reviewer + Finance manager | AP reviewer + Finance manager |
+| REJECT | nobody (one reviewer approval overrides it) | same |
+
+A finance manager can fill the reviewer step too, but one person can fill only one step, so two-step cases always need two different names.
 
 ---
 
